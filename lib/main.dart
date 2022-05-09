@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:scoped_model/scoped_model.dart';
+import './depenses_list_model.dart';
+import './depenses.dart';
 
 void main() {
   runApp(const MyApp());
@@ -12,39 +15,161 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Calculateur de Dépenses',
       theme: ThemeData(
-        primarySwatch: Colors.blue,
+        primarySwatch: Colors.red,
       ),
       home: const MyHomePage(title: 'Calculateur de Dépenses'),
+      debugShowCheckedModeBanner: false,
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
+class MyHomePage extends StatelessWidget {
   const MyHomePage({Key? key, required this.title}) : super(key: key);
 
   final String title;
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.title),
+        title: Text(title),
       ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: const <Widget>[
-            Text(
-              'You have pushed the button this many times:',
-            )
-          ],
-        ),
+      body: ScopedModelDescendant<DepensesListModel>(
+        builder: (context, child, model) {
+          return ListView.separated(
+            itemCount: model.depenses.length,
+            itemBuilder: (context, index) {
+              if (index == 0) {
+                return ListTile(
+                  title: Text(
+                    'total des dépenses : ' + model.totalDepenses.toString(),
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                );
+              } else {
+                index = index - 1;
+                return Dismissible(
+                  key: Key(model.depenses[index].id.toString()),
+                  onDismissed: (direction) {
+                    model.deleteDepenses(model.depenses[index].id);
+                    Scaffold.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          "Item id : " + model.depenses[index].id.toString() + " supprimé",
+                        ),
+                      ),
+                    );
+                  },
+                  child: ListTile(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => FormPage(
+                            id: model.depenses[index].id,
+                            depenses: model,
+                          ),
+                        ),
+                      );
+                    },
+                    leading: const Icon(Icons.monetization_on),
+                    trailing: const Icon(Icons.keyboard_arrow_right),
+                    title: Text(
+                      model.depenses[index].categorie +
+                          " : " +
+                          model.depenses[index].id.toString() +
+                          " " +
+                          model.depenses[index].formattedDate,
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
+                  ),
+                );
+              }
+            },
+            separatorBuilder: (context, index) {
+              return const Divider();
+            },
+          );
+        },
+      ),
+      floatingActionButton: ScopedModelDescendant<DepensesListModel>(
+        builder: (context, child, model) {
+          return FloatingActionButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => ScopedModelDescendant<DepensesListModel>(
+                    builder: (context, chil, model) {
+                      return FormPage(
+                        id: 0,
+                        depenses: model,
+                      );
+                    },
+                  ),
+                ),
+              );
+            },
+            tooltip: 'increment',
+            child: const Icon(Icons.add),
+          );
+        },
       ),
     );
+  }
+}
+
+class FormPage extends StatefulWidget {
+  const FormPage({
+    Key? key,
+    required this.id,
+    required this.depenses,
+  });
+  final id;
+  final depenses;
+  @override
+  _FormPageState createState() => _FormPageState(
+        id: id,
+        depenses: depenses,
+      );
+}
+
+class _FormPageState extends State<FormPage> {
+  _FormPageState({
+    Key? key,
+    required this.id,
+    required this.depenses,
+  });
+  final id;
+  final depenses;
+  final _formKey = GlobalKey<FormState>();
+  final _scaffoldKey = GlobalKey<ScaffoldState>();
+  late double _montant;
+  late DateTime _date;
+  late String _category;
+
+  void envoyer() {
+    final form = _formKey.currentState;
+    if (form.validate()) {
+      form.save();
+      if (id == 0) {
+        depenses.insertDepenses(Depenses(0, _montant, _date, _category));
+      } else {
+        depenses.updateDepenses(Depenses(0, _montant, _date, _category));
+      }
+      Navigator.pop(context);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // TODO: implement build
+    throw UnimplementedError();
   }
 }
