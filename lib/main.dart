@@ -131,8 +131,8 @@ class FormPage extends StatefulWidget {
     required this.id,
     required this.depenses,
   });
-  final id;
-  final depenses;
+  final int id;
+  final DepensesListModel depenses;
   @override
   _FormPageState createState() => _FormPageState(
         id: id,
@@ -146,8 +146,8 @@ class _FormPageState extends State<FormPage> {
     required this.id,
     required this.depenses,
   });
-  final id;
-  final depenses;
+  final int id;
+  final DepensesListModel depenses;
   final _formKey = GlobalKey<FormState>();
   final _scaffoldKey = GlobalKey<ScaffoldState>();
   late double _montant;
@@ -169,7 +169,59 @@ class _FormPageState extends State<FormPage> {
 
   @override
   Widget build(BuildContext context) {
-    // TODO: implement build
-    throw UnimplementedError();
+    return Scaffold(
+      key: _scaffoldKey,
+      appBar: AppBar(
+        title: const Text('déclarer ses dépenses'),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            children: [
+              TextFormField(
+                style: const TextStyle(fontSize: 22),
+                decoration: const InputDecoration(
+                  icon: Icon(Icons.monetization_on),
+                  labelText: 'Montant',
+                  labelStyle: TextStyle(fontSize: 18),
+                ),
+                validator: (val) {
+                  RegExp regExp = RegExp(r'^[0-9]\d*(\.\d+)?$');
+                  if (!regExp.hasMatch(val ?? '')) {
+                    //si val est nul => ''
+                    return 'Montant Invalide';
+                  } else {
+                    return null;
+                  }
+                },
+                initialValue: id == 0 ? '' : depenses.depenses[id].montant.toString(),
+                onSaved: (val) => _montant = double.parse(val ?? ''),
+              ),
+              TextFormField(
+                style: const TextStyle(fontSize: 22),
+                decoration: const InputDecoration(
+                  icon: Icon(Icons.monetization_on),
+                  labelText: 'Date',
+                  labelStyle: TextStyle(fontSize: 18),
+                ),
+                validator: (val) {
+                  RegExp regExp = RegExp(r'^[0-9]\d*(\.\d+)?$');
+                  if (!regExp.hasMatch(val ?? '')) {
+                    //si val est nul => ''
+                    return 'Date Invalide';
+                  } else {
+                    return null;
+                  }
+                },
+                initialValue: id == 0 ? '' : depenses.depenses[id].montant.toString(),
+                onSaved: //(val) => _montant = date.parse(val ?? ''),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
