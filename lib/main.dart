@@ -1,10 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:scoped_model/scoped_model.dart';
+//import 'package:scoped_model/scoped_model.dart';
+import 'package:provider/provider.dart';
 import './depenses_list_model.dart';
 import './depenses.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(
+    //const MyApp()
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => DepensesListModel()),
+      ],
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -34,15 +43,15 @@ class MyHomePage extends StatelessWidget {
       appBar: AppBar(
         title: Text(title),
       ),
-      body: ScopedModelDescendant<DepensesListModel>(
+      body: Consumer<DepensesListModel>(
         builder: (context, child, model) {
           return ListView.separated(
-            itemCount: model.depenses.length,
+            itemCount: context.watch<DepensesListModel>().depenses.length,
             itemBuilder: (context, index) {
               if (index == 0) {
                 return ListTile(
                   title: Text(
-                    'total des dépenses : ' + model.totalDepenses.toString(),
+                    'total des dépenses : ' + context.watch<DepensesListModel>().totalDepenses.toString(),
                     style: const TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
@@ -52,13 +61,15 @@ class MyHomePage extends StatelessWidget {
               } else {
                 index = index - 1;
                 return Dismissible(
-                  key: Key(model.depenses[index].id.toString()),
+                  key: Key(context.watch<DepensesListModel>().depenses[index].id.toString()),
                   onDismissed: (direction) {
-                    model.deleteDepenses(model.depenses[index].id);
+                    context
+                        .watch<DepensesListModel>()
+                        .deleteDepenses(context.watch<DepensesListModel>().depenses[index].id);
                     Scaffold.of(context).showSnackBar(
                       SnackBar(
                         content: Text(
-                          "Item id : " + model.depenses[index].id.toString() + " supprimé",
+                          "Item id : " + context.watch<DepensesListModel>().depenses[index].id.toString() + " supprimé",
                         ),
                       ),
                     );
@@ -69,8 +80,8 @@ class MyHomePage extends StatelessWidget {
                         context,
                         MaterialPageRoute(
                           builder: (context) => FormPage(
-                            id: model.depenses[index].id,
-                            depenses: model,
+                            id: context.watch<DepensesListModel>().depenses[index].id,
+                            depenses: context.watch<DepensesListModel>(),
                           ),
                         ),
                       );
@@ -78,11 +89,11 @@ class MyHomePage extends StatelessWidget {
                     leading: const Icon(Icons.monetization_on),
                     trailing: const Icon(Icons.keyboard_arrow_right),
                     title: Text(
-                      model.depenses[index].categorie +
+                      context.watch<DepensesListModel>().depenses[index].categorie +
                           " : " +
-                          model.depenses[index].id.toString() +
+                          context.watch<DepensesListModel>().depenses[index].id.toString() +
                           " " +
-                          model.depenses[index].formattedDate,
+                          context.watch<DepensesListModel>().depenses[index].formattedDate,
                       style: const TextStyle(
                         fontSize: 18,
                         fontStyle: FontStyle.italic,
@@ -98,18 +109,18 @@ class MyHomePage extends StatelessWidget {
           );
         },
       ),
-      floatingActionButton: ScopedModelDescendant<DepensesListModel>(
+      floatingActionButton: Consumer<DepensesListModel>(
         builder: (context, child, model) {
           return FloatingActionButton(
             onPressed: () {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => ScopedModelDescendant<DepensesListModel>(
+                  builder: (context) => Consumer<DepensesListModel>(
                     builder: (context, chil, model) {
                       return FormPage(
                         id: 0,
-                        depenses: model,
+                        depenses: context.watch<DepensesListModel>(),
                       );
                     },
                   ),
@@ -156,7 +167,7 @@ class _FormPageState extends State<FormPage> {
 
   void envoyer() {
     final form = _formKey.currentState;
-    if (form.validate()) {
+    if (form!.validate()) {
       form.save();
       if (id == 0) {
         depenses.insertDepenses(Depenses(0, _montant, _date, _category));
@@ -209,7 +220,6 @@ class _FormPageState extends State<FormPage> {
                 validator: (val) {
                   RegExp regExp = RegExp(r'^\d{4}\-(0[1-9]|1[012])\-(0[1-9]|[12][0-9]|3[01])$');
                   if (!regExp.hasMatch(val ?? '')) {
-                    //si val est nul => ''
                     return 'Date Invalide';
                   } else {
                     return null;
@@ -228,7 +238,6 @@ class _FormPageState extends State<FormPage> {
                 validator: (val) {
                   RegExp regExp = RegExp(r'^[a-zA-Z0-9_]+$');
                   if (!regExp.hasMatch(val ?? '')) {
-                    //si val est nul => ''
                     return 'Catégorie Invalide';
                   } else {
                     return null;

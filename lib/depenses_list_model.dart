@@ -1,9 +1,10 @@
 import 'dart:collection';
-import 'package:scoped_model/scoped_model.dart'; //changer pour provider et retirer la class model
+//import 'package:scoped_model/scoped_model.dart'; //changer pour provider et retirer la class model
+import 'package:flutter/foundation.dart';
 import 'depenses.dart';
 import 'database.dart';
 
-class DepensesListModel extends Model {
+class DepensesListModel with ChangeNotifier, DiagnosticableTreeMixin {
   DepensesListModel() {
     load();
   }
