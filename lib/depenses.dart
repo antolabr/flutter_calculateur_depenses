@@ -15,7 +15,7 @@ class Depenses {
 
   static final columns = ['id', 'montant', 'date', 'categorie'];
 
-  factory Depenses.fromMap(Map<String, dynamic> data) {
+  factory Depenses.fromMap(Map<dynamic, dynamic> data) {
     return Depenses(
       data['id'],
       data['montant'],
