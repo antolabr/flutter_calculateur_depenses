@@ -202,12 +202,12 @@ class _FormPageState extends State<FormPage> {
               TextFormField(
                 style: const TextStyle(fontSize: 22),
                 decoration: const InputDecoration(
-                  icon: Icon(Icons.monetization_on),
+                  icon: Icon(Icons.calendar_today),
                   labelText: 'Date',
                   labelStyle: TextStyle(fontSize: 18),
                 ),
                 validator: (val) {
-                  RegExp regExp = RegExp(r'^[0-9]\d*(\.\d+)?$');
+                  RegExp regExp = RegExp(r'^\d{4}\-(0[1-9]|1[012])\-(0[1-9]|[12][0-9]|3[01])$');
                   if (!regExp.hasMatch(val ?? '')) {
                     //si val est nul => ''
                     return 'Date Invalide';
@@ -215,8 +215,27 @@ class _FormPageState extends State<FormPage> {
                     return null;
                   }
                 },
-                initialValue: id == 0 ? '' : depenses.depenses[id].montant.toString(),
-                onSaved: //(val) => _montant = date.parse(val ?? ''),
+                initialValue: id == 0 ? '' : depenses.depenses[id].date.toString(),
+                onSaved: (val) => _date = DateTime.parse(val ?? ''),
+              ),
+              TextFormField(
+                style: const TextStyle(fontSize: 22),
+                decoration: const InputDecoration(
+                  icon: Icon(Icons.category),
+                  labelText: 'Catégorie',
+                  labelStyle: TextStyle(fontSize: 18),
+                ),
+                validator: (val) {
+                  RegExp regExp = RegExp(r'^[a-zA-Z0-9_]+$');
+                  if (!regExp.hasMatch(val ?? '')) {
+                    //si val est nul => ''
+                    return 'Catégorie Invalide';
+                  } else {
+                    return null;
+                  }
+                },
+                initialValue: id == 0 ? '' : depenses.depenses[id].categorie.toString(),
+                onSaved: (val) => _date = DateTime.parse(val ?? ''),
               ),
             ],
           ),
